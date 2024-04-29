@@ -7,6 +7,7 @@
 package tcp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -19,6 +20,7 @@ import (
 
 	"net/netip"
 
+	"golang.org/x/net/proxy"
 	"golang.zx2c4.com/wireguard/tun/netstack"
 	"gvisor.dev/gvisor/pkg/tcpip"
 	"gvisor.dev/gvisor/pkg/tcpip/adapters/gonet"
@@ -87,7 +89,10 @@ func Handler(c Config) func(*tcp.ForwarderRequest) {
 // a channel for the caller to populate when the connection is used,
 // and whether or not to send RST to source.
 func checkDst(config *Config, s stack.TransportEndpointID) (net.Conn, chan bool, bool) {
-	c, err := net.DialTimeout("tcp", net.JoinHostPort(s.LocalAddress.String(), fmt.Sprint(s.LocalPort)), config.ConnTimeout)
+	// SOCKS: Implement with proxy.Dial()
+	ctx, cancel := context.WithTimeout(context.Background(), config.ConnTimeout)
+	defer cancel()
+	c, err := proxy.Dial(ctx, "tcp", net.JoinHostPort(s.LocalAddress.String(), fmt.Sprint(s.LocalPort)))
 	if err != nil {
 		// If connection refused, we can send a reset to let peer know.
 		if oerr, ok := err.(*net.OpError); ok {

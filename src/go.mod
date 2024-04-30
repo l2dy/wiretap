@@ -10,6 +10,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/go-ping/ping v1.1.0
 	github.com/google/gopacket v1.1.19
+	github.com/l2dy/socks5 v0.0.0-20240430150830-77b533f79927
 	github.com/libp2p/go-reuseport v0.2.0
 	github.com/m1gwings/treedrawer v0.3.3-beta
 	github.com/spf13/cobra v1.6.1
@@ -30,12 +31,14 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
+	github.com/txthinking/runnergroup v0.0.0-20210608031112-152c7c4432bf // indirect
 	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect

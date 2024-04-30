@@ -173,9 +173,6 @@ func handleConn(conn udpConn, port int, s *stack.Stack) {
 
 	var mostRecentPacket stack.PacketBufferPtr
 
-	// SOCKS: Disable UDP
-	return
-
 	// New dialer from source to destination.
 	laddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
@@ -188,22 +185,32 @@ func handleConn(conn udpConn, port int, s *stack.Stack) {
 		return
 	}
 
-	// Reusing port so we can get the ICMP unreachable message back.
-	// Would like to use ListenUDP, but we don't get ICMP unreachable.
-	newConn, err := reuse.Dial("udp", laddr.String(), raddr.String())
+	newConn, err := dialProxyFromEnvironment(raddr)
 	if err != nil {
-		log.Println("failed new UDP bind", err)
+		log.Println("failed to dial proxy", err)
 		return
 	}
+
+	if newConn == nil {
+		// Reusing port so we can get the ICMP unreachable message back.
+		// Would like to use ListenUDP, but we don't get ICMP unreachable.
+		newConn, err = reuse.Dial("udp", laddr.String(), raddr.String())
+		if err != nil {
+			log.Println("failed new UDP bind", err)
+			return
+		}
+		// No more return before the deferred .Close()!
+		// Only update sourceMap if we are not using a proxy.
+
+		// No other dialer with same source address has a port set, so we get to be the first!
+		tmp_addr, _ := net.ResolveUDPAddr("udp", newConn.LocalAddr().String())
+		sourceMapIncrement(conn.Source, tmp_addr.Port)
+
+		defer func() {
+			sourceMapDecrement(conn.Source)
+		}()
+	}
 	defer newConn.Close()
-
-	// No other dialer with same source address has a port set, so we get to be the first!
-	tmp_addr, _ := net.ResolveUDPAddr("udp", newConn.LocalAddr().String())
-	sourceMapIncrement(conn.Source, tmp_addr.Port)
-
-	defer func() {
-		sourceMapDecrement(conn.Source)
-	}()
 
 	err = newConn.SetDeadline(time.Now().Add(30 * time.Second))
 	if err != nil {
